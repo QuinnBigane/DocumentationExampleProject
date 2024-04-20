@@ -14,7 +14,7 @@ Displaying Images
 
 .. image:: ./TestImage1.png
 
-    
+
 .. image:: ./TestImage2.png
 
 .. 
@@ -23,3 +23,14 @@ Displaying Images
         :width: 80%
     .. image:: ./TestImage2.png
         :width: 200
+
+
+Displaying Tables
+###################
+
+========= ========= ===============
+Name      Value     Description
+========= ========= ===============
+Red fish  37        number of fish
+Blue fish 73        number of fish
+========= ========= ===============
