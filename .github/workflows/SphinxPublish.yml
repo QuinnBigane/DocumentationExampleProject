@@ -1,0 +1,87 @@
+#This workflow is designed to automatically build the documentation when a pull request is merged, or when someone runs the action. 
+
+name: Documentation Build
+
+# Controls when the workflow will run
+on:
+
+  # trigger on push to master branch
+  push:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+      
+      # Install the tool for Sphinx
+      - name: Install Sphinx
+        run: python3 -m pip install -U -r requirements.txt
+
+      # Run a pip list to see what tools are installed 
+      - name: pip list
+        run: python3 -m pip list
+
+      # Add the location of the install for sphinx to the github path 
+      - name: Add to path 
+        run: echo "/home/runners/.local/bin" >> $GITHUB_PATH
+    
+      #This was a debugging step to see what the path is. 
+      - name: Echo path
+        run: echo $PATH
+    
+      # Run the make file
+      - name: Build the pages
+        run: make html
+      
+      # Remove the docs folder 
+      - name: Remove docs folder
+        run: rm -r "./docs"
+  
+      # Make docs folder
+      - name: Makes docs folder
+        run: mkdir "./docs"
+      
+      # Create a blank file to control the formatting of the github page
+      - name: Create nojekyll file 
+        run: touch ./docs/.nojekyll
+        
+      # Move the files to docs
+      - name: Move Files
+        run: mv -f ./build/html/* ./docs
+        
+      # Delete the build folder  
+      - name: Delete the build folder
+        run: rm -r "./build"
+        
+      # Commit changes back to master branch
+      - name: Commit changes
+        # only run this step if there are files to commit 
+        run: |
+          echo $(git diff --name-only)
+          echo $(git status)
+          cd docs
+          echo $(ls)
+          cd ..
+          echo $(pwd)
+          CONSOLEOUTPUT=$(git diff --name-only)
+          if [ "${CONSOLEOUTPUT}" ]
+          then
+            git config --global user.name "GithubAction" 
+            cd docs
+            git add -A
+            git commit -m "Github Action updating the docs folder for publishing"
+            git push
+          else
+            echo "help"
+          fi
